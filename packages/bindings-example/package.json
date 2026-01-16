@@ -1,0 +1,19 @@
+{
+  "name": "bindings-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "wasm:sync": "node scripts/sync-wasm.mjs"
+  },
+  "dependencies": {
+    "bindings": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CanvasKit Cheap WebGL Bindings - Test Suite</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 0;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      color: #333;
+    }
+    .subtitle {
+      margin: 0 0 30px;
+      color: #666;
+      font-size: 14px;
+    }
+    .test-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-section h2 {
+      margin: 0 0 15px;
+      font-size: 18px;
+      color: #333;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 8px;
+    }
+    .canvas-wrapper {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .canvas-container {
+      flex: 1;
+      min-width: 300px;
+    }
+    .canvas-container h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    canvas { 
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      background: white;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      background: #4CAF50;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: #2196F3;
+    }
+    button.secondary:hover {
+      background: #0b7dda;
+    }
+    #log { 
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 15px;
+      font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .log-entry {
+      margin: 4px 0;
+      padding: 2px 0;
+    }
+    .success { color: #4CAF50; }
+    .error { color: #f44336; }
+    .warning { color: #ff9800; }
+    .info { color: #2196F3; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: #f9f9f9;
+      border-left: 4px solid #4CAF50;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .stat-card.error {
+      border-left-color: #f44336;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-left: 8px;
+    }
+    .badge.success { background: #4CAF50; color: white; }
+    .badge.error { background: #f44336; color: white; }
+    .badge.pending { background: #ff9800; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 CanvasKit Cheap WebGL Bindings</h1>
+    <p class="subtitle">
+      Test suite for browser-compatible WebGL bindings without WebAssembly.Function
+      <br>
+      <strong>🔍 Debug Mode:</strong> This build includes DWARF debug info. 
+      <a href="https://goo.gle/wasm-debugging-extension" target="_blank">Install Chrome extension</a> to debug C++ source in DevTools.
+    </p>
+
+    <div class="test-section">
+      <h2>System Information</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">WebGL Version</div>
+          <div class="stat-value" id="webgl-version">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Renderer</div>
+          <div class="stat-value" id="webgl-renderer">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Wasm Status</div>
+          <div class="stat-value" id="wasm-status">Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">GL Exports</div>
+          <div class="stat-value" id="gl-exports">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Test Controls</h2>
+      <div class="controls">
+        <button id="btn-basic-test">Run Basic WebGL Test</button>
+        <button id="btn-context-test" class="secondary">Test Skia Context Creation</button>
+        <button id="btn-surface-test" class="secondary">Test Skia Surface</button>
+        <button id="btn-draw-test" class="secondary">Draw Test Pattern</button>
+        <button id="btn-clear-log" style="background: #757575;">Clear Log</button>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Canvas Preview</h2>
+      <div class="canvas-wrapper">
+        <div class="canvas-container">
+          <h3>WebGL Canvas</h3>
+          <canvas id="test-canvas" width="400" height="300"></canvas>
+        </div>
+        <div class="canvas-container">
+          <h3>Skia Surface Preview</h3>
+          <canvas id="skia-canvas" width="400" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Test Log</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    // DOM elements
+    const logEl = document.getElementById('log')
+    const webglVersionEl = document.getElementById('webgl-version')
+    const webglRendererEl = document.getElementById('webgl-renderer')
+    const wasmStatusEl = document.getElementById('wasm-status')
+    const glExportsEl = document.getElementById('gl-exports')
+    const canvas = document.getElementById('test-canvas')
+    const skiaCanvas = document.getElementById('skia-canvas')
+    
+    // State
+    let ck = null
+    let glCtx = null
+    let skiaCtxHandle = 0
+    
+    // Logging functions
+    function addLog(msg, type = 'success') {
+      const line = document.createElement('div')
+      line.className = `log-entry ${type}`
+      const timestamp = new Date().toLocaleTimeString()
+      line.textContent = `[${timestamp}] ${msg}`
+      logEl.appendChild(line)
+      logEl.scrollTop = logEl.scrollHeight
+      console.log(msg)
+    }
+
+    function clearLog() {
+      logEl.innerHTML = ''
+    }
+
+    function updateStat(id, value, badge = null) {
+      const el = document.getElementById(id)
+      if (el) {
+        el.textContent = value
+        if (badge) {
+          const badgeEl = document.createElement('span')
+          badgeEl.className = `badge ${badge.type}`
+          badgeEl.textContent = badge.text
+          el.appendChild(badgeEl)
+        }
+      }
+    }
+
+    // Initialize WebGL info
+    function initWebGLInfo() {
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+      if (gl) {
+        const version = gl instanceof WebGL2RenderingContext ? 'WebGL 2.0' : 'WebGL 1.0'
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+        const renderer = debugInfo 
+          ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) 
+          : gl.getParameter(gl.RENDERER)
+        
+        updateStat('webgl-version', version)
+        updateStat('webgl-renderer', renderer || 'Unknown')
+      } else {
+        updateStat('webgl-version', 'Not Available')
+        updateStat('webgl-renderer', 'N/A')
+      }
+    }
+
+    // Main initialization
+    async function init() {
+      try {
+        addLog('🚀 Starting CanvasKit initialization...', 'info')
+        updateStat('wasm-status', 'Loading...')
+        
+        // Import the cheap bindings from bindings package
+        addLog('Importing CanvasKitApi module...', 'info')
+        const module = await import('../bindings/dist/CanvasKitApi.js')
+        const { CanvasKitApi } = module
+        addLog('✓ CanvasKitApi module loaded')
+        addLog(`Module exports: ${Object.keys(module).join(', ')}`, 'info')
+
+        // Load wasm from third-party/skia build output
+        const wasmPath = './cheap/canvaskit.wasm'
+        addLog(`Loading wasm from: ${wasmPath}`, 'info')
+        
+        ck = await CanvasKitApi.ready({ uri: wasmPath })
+        addLog('✓ CanvasKit initialized')
+        updateStat('wasm-status', 'Ready', { type: 'success', text: 'OK' })
+
+        // Check for WebGL exports
+        const webglExports = [
+          'WebGL_CreateContext',
+          'WebGL_MakeContextCurrent',
+          'WebGL_DestroyContext',
+          'MakeOnScreenCanvasSurface'
+        ]
+        
+        const foundExports = webglExports.filter(name => CanvasKitApi.hasExport(name))
+        const hasAllExports = foundExports.length === webglExports.length
+        
+        updateStat('gl-exports', `${foundExports.length}/${webglExports.length}`, 
+          { type: hasAllExports ? 'success' : 'error', text: hasAllExports ? 'ALL' : 'MISSING' })
+        
+        if (!hasAllExports) {
+          addLog('⚠ Some WebGL exports missing. Rebuild with CHEAP_WEBGL=1', 'warning')
+          addLog(`Found: ${foundExports.join(', ')}`, 'info')
+          addLog(`Missing: ${webglExports.filter(e => !foundExports.includes(e)).join(', ')}`, 'warning')
+        } else {
+          addLog('✓ All WebGL exports found')
+        }
+
+        // Enable test buttons
+        document.getElementById('btn-basic-test').disabled = false
+        document.getElementById('btn-context-test').disabled = !hasAllExports
+        document.getElementById('btn-surface-test').disabled = !hasAllExports
+        document.getElementById('btn-draw-test').disabled = !hasAllExports
+
+        addLog('=== Initialization Complete ===', 'success')
+        
+      } catch (err) {
+        addLog(`✗ Initialization Error: ${err.message}`, 'error')
+        updateStat('wasm-status', 'Failed', { type: 'error', text: 'ERROR' })
+        console.error(err)
+      }
+    }
+
+    // Test functions
+    async function testBasicWebGL() {
+      addLog('--- Running Basic WebGL Test ---', 'info')
+      
+      try {
+        glCtx = canvas.getContext('webgl2') || canvas.getContext('webgl')
+        if (!glCtx) {
+          throw new Error('Failed to create WebGL context')
+        }
+        addLog('✓ WebGL context created')
+
+        // Clear to different colors
+        const colors = [
+          [0, 0, 1, 1],    // Blue
+          [1, 0, 0, 1],    // Red
+          [0, 1, 0, 1],    // Green
+          [1, 1, 0, 1]     // Yellow
+        ]
+        
+        for (let i = 0; i < colors.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 300))
+          glCtx.clearColor(...colors[i])
+          glCtx.clear(glCtx.COLOR_BUFFER_BIT)
+        }
+        
+        addLog('✓ WebGL color animation complete')
+        addLog('=== Basic WebGL Test Passed ===', 'success')
+        
+      } catch (err) {
+        addLog(`✗ Basic WebGL Test Failed: ${err.message}`, 'error')
+      }
+    }
+
+    async function testContextCreation() {
+      addLog('--- Testing Skia Context Creation ---', 'info')
+      
+      try {
+        const module = await import('../bindings/dist/CanvasKitApi.js')
+        const { CanvasKitApi } = module
+
+        const selector = '#test-canvas'
+        const selectorBytes = new TextEncoder().encode(selector + '\0')
+        const selectorPtr = CanvasKitApi.allocBytes(selectorBytes)
+        
+        // Create context attributes
+        const attrsSize = 36
+        const attrsPtr = CanvasKitApi.malloc(attrsSize)
+        
+        CanvasKitApi.setUint32(attrsPtr + 0, 1)   // alpha
+        CanvasKitApi.setUint32(attrsPtr + 4, 1)   // depth
+        CanvasKitApi.setUint32(attrsPtr + 8, 8)   // stencil
+        CanvasKitApi.setUint32(attrsPtr + 12, 0)  // antialias
+        CanvasKitApi.setUint32(attrsPtr + 16, 2)  // majorVersion
+        CanvasKitApi.setUint32(attrsPtr + 20, 0)  // minorVersion
+        CanvasKitApi.setUint8(attrsPtr + 24, 1)   // enableExtensionsByDefault
+        CanvasKitApi.setUint8(attrsPtr + 25, 0)   // explicitSwapControl
+        
+        skiaCtxHandle = CanvasKitApi.invoke('WebGL_CreateContextWithAttributes', selectorPtr, selectorBytes.length - 1, attrsPtr)
+        addLog(`✓ Context handle: ${skiaCtxHandle}`)
+        
+        if (skiaCtxHandle > 0) {
+          const result = CanvasKitApi.invoke('WebGL_MakeContextCurrent', skiaCtxHandle)
+          addLog(`✓ MakeContextCurrent result: ${result}`)
+          addLog('=== Context Creation Test Passed ===', 'success')
+        } else {
+          throw new Error('Invalid context handle')
+        }
+        
+        CanvasKitApi.free(selectorPtr)
+        CanvasKitApi.free(attrsPtr)
+        
+      } catch (err) {
+        addLog(`✗ Context Creation Failed: ${err.message}`, 'error')
+      }
+    }
+
+    async function testSurfaceCreation() {
+      addLog('--- Testing Skia Surface Creation ---', 'info')
+      
+      try {
+        const module = await import('../bindings/dist/CanvasKitApi.js')
+        const { CanvasKitApi } = module
+
+        if (skiaCtxHandle === 0) {
+          addLog('⚠ No context handle, running context test first...', 'warning')
+          await testContextCreation()
+        }
+        
+        const selector = '#skia-canvas'
+        const selectorBytes = new TextEncoder().encode(selector + '\0')
+        const selectorPtr = CanvasKitApi.allocBytes(selectorBytes)
+        
+        const surface = CanvasKitApi.invoke('MakeOnScreenCanvasSurface', selectorPtr, 400, 300, 0, 0, 0)
+        
+        if (surface) {
+          addLog('✓ Skia WebGL surface created!')
+          addLog('=== Surface Creation Test Passed ===', 'success')
+        } else {
+          addLog('⚠ Surface is null (may need more GL functions implemented)', 'warning')
+        }
+        
+        CanvasKitApi.free(selectorPtr)
+        
+      } catch (err) {
+        addLog(`✗ Surface Creation Failed: ${err.message}`, 'error')
+      }
+    }
+
+    async function testDrawPattern() {
+      addLog('--- Testing Draw Pattern ---', 'info')
+      addLog('⚠ This test requires full Skia API implementation', 'warning')
+      addLog('For now, drawing a simple WebGL pattern...', 'info')
+      
+      // Draw a simple gradient using WebGL
+      const ctx = skiaCanvas.getContext('2d')
+      if (ctx) {
+        const gradient = ctx.createLinearGradient(0, 0, 400, 300)
+        gradient.addColorStop(0, '#4CAF50')
+        gradient.addColorStop(1, '#2196F3')
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, 400, 300)
+        
+        ctx.fillStyle = 'white'
+        ctx.font = 'bold 24px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('Skia Surface Preview', 200, 150)
+        
+        addLog('✓ 2D gradient drawn', 'success')
+      }
+    }
+
+    // Event listeners
+    document.getElementById('btn-basic-test').addEventListener('click', testBasicWebGL)
+    document.getElementById('btn-context-test').addEventListener('click', testContextCreation)
+    document.getElementById('btn-surface-test').addEventListener('click', testSurfaceCreation)
+    document.getElementById('btn-draw-test').addEventListener('click', testDrawPattern)
+    document.getElementById('btn-clear-log').addEventListener('click', clearLog)
+
+    // Initialize on load
+    initWebGLInfo()
+    init()
+  </script>
+</body>
+</html>
