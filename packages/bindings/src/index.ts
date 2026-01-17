@@ -10,6 +10,7 @@ export * from './PathEffect'
 export * from './MaskFilter'
 export * from './ColorFilter'
 export * from './ImageFilter'
+export * from './WebGLApi'
 
 export * from 'geometry'
 

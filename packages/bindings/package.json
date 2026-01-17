@@ -5,10 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "build:skia": "bash ../../packages/third-party/skia/modules/canvaskit/compile.sh",
     "gen:canvaskitapi": "pnpm run wasm:enums && tsx scripts/getEnums.ts",
     "wasm:enums": "tsx scripts/buildEnumWasm.ts",
     "wasm:build": "tsx scripts/buildCheapWasm.ts",
-    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && pnpm run gen:canvaskitapi && tsc -p tsconfig.json",
+    "build": "pnpm run build:skia && node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && pnpm run gen:canvaskitapi && tsc -p tsconfig.json",
+    "dev:examples": "vite",
+    "build:examples": "vite build",
+    "preview:examples": "vite preview",
     "smoke": "pnpm run build && tsx src/smoke.ts",
     "test": "vitest run",
     "test:gpu": "RUN_BROWSER_GPU_TESTS=1 vitest run src/__tests__/gpu"

@@ -3,6 +3,11 @@ import * as fs from 'fs/promises'
 import { existsSync } from 'fs'
 import { spawnSync } from 'node:child_process'
 
+function envFlag(name: string, fallback: string): string {
+  const value = process.env[name]
+  return value == null || value === '' ? fallback : value
+}
+
 const exportedFunctions = [
   'SkPathFillType_Winding',
   'SkPathFillType_EvenOdd',
@@ -98,7 +103,14 @@ async function main() {
     throw new Error(`Missing C++ source: ${src}`)
   }
 
-  const emcc = process.env.EMCC || 'emcc'
+  const repoRoot = path.resolve(root, '..', '..')
+  const skiaDir = path.resolve(repoRoot, 'packages/third-party/skia')
+  const emsdkDir = envFlag('EMSDK_DIR', path.resolve(skiaDir, 'third_party/externals/emsdk'))
+  const emcc = envFlag('EMCC', path.resolve(emsdkDir, 'upstream/emscripten/emcc'))
+
+  if (!existsSync(emcc)) {
+    throw new Error(`emcc not found at ${emcc}`)
+  }
   const exportList = JSON.stringify(exportedFunctions.map((name) => `_${name}`))
 
   const args = [
@@ -109,6 +121,7 @@ async function main() {
     'STANDALONE_WASM=1',
     '-s',
     `EXPORTED_FUNCTIONS=${exportList}`,
+    '--no-entry',
     '-o',
     out,
   ]

@@ -11,7 +11,7 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 - Write deltas: use `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`; include at least one `#### Scenario:` per requirement
 - Validate: `openspec validate [change-id] --strict --no-interactive` and fix issues
 - Request approval: Do not start implementation until proposal is approved
-- Testing: add `tests.md`, enumerate unit test options, create tests under `bindings/__tests__/[change-id>]`, add test tasks in `tasks.md`, and record pass/fail (revisit requirements if failing)
+- Testing: add `tests.md`, enumerate unit test options, create tests under `src/__tests__/[change-id>]`, add test tasks in `tasks.md`, and record pass/fail (revisit requirements if failing)
 
 ## Three-Stage Workflow
 

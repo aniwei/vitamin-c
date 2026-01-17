@@ -74,6 +74,9 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.21(@types/node@20.19.27)
 
   packages/gesture:
     devDependencies:
@@ -158,6 +161,9 @@ importers:
 
   packages/shared:
     devDependencies:
+      '@types/invariant':
+        specifier: ^2.2.37
+        version: 2.2.37
       invariant:
         specifier: ^2.2.4
         version: 2.2.4
@@ -167,6 +173,9 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.21(@types/node@20.19.27)
 
   packages/ui:
     dependencies:

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bindings Vite Examples</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Bindings Vite Examples</h1>
+        <p>展示 Canvas/Surface/WebGL/WebGPU/Paragraph/Filters 等接口的基础用法。</p>
+        <div class="status" id="status">Initializing…</div>
+      </header>
+
+      <section>
+        <h2>Surface + Canvas (Software)</h2>
+        <canvas id="sw-canvas" width="320" height="200"></canvas>
+      </section>
+
+      <section>
+        <h2>WebGL Surface</h2>
+        <canvas id="webgl-canvas" width="320" height="200"></canvas>
+      </section>
+
+      <section>
+        <h2>Paragraph</h2>
+        <canvas id="paragraph-canvas" width="320" height="120"></canvas>
+      </section>
+
+      <section>
+        <h2>Filters</h2>
+        <p class="note">创建 MaskFilter / ColorFilter / ImageFilter（详见 Logs）。</p>
+      </section>
+
+      <section>
+        <h2>WebGPU</h2>
+        <p class="note">检测 WebGPU 可用性并输出状态（详见 Logs）。</p>
+      </section>
+
+      <section>
+        <h2>Logs</h2>
+        <pre id="log"></pre>
+      </section>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
